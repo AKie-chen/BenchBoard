@@ -1,0 +1,92 @@
+# ============================================================
+# BenchBoard  .gitignore
+# Qt6 + CMake (MSVC 2022 / Ninja) —— Qt Creator & Visual Studio 双 IDE
+# ============================================================
+
+# ---------- 构建输出 ----------
+# Qt Creator 的构建目录（预设里 binaryDir 会落到这里）
+/build*/
+# Visual Studio 的 CMake 预设构建目录（out/build/<config>）
+/out/
+# 通用兜底：任意层级的构建产物目录
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/CTestTestfile.cmake
+**/Testing/
+**/install_manifest.txt
+**/.cmake/
+**/.ninja_deps
+**/.ninja_log
+**/build.ninja
+**/.qt/
+**/VSInheritEnvironments.txt
+# 由 CMake 生成的 Makefile（切换 Unix Makefiles 生成器时会出现）
+**/Makefile
+**/compile_commands.json
+
+# ---------- IDE / 编辑器配置 ----------
+# Qt Creator 14+ 把用户配置放进 .qtcreator/
+/.qtcreator/
+CMakeLists.txt.user*
+*.autosave
+# Visual Studio
+/.vs/
+*.slnx
+*.vcxproj
+*.vcxproj.*
+*.vcxproj.user
+# VS Code / CLion / IDEA
+/.vscode/
+/.idea/
+/.cache/
+/.clangd/
+**/.qtc_clangd/
+
+# ---------- CMake 本地预设 ----------
+# 含本机专属路径（QTDIR=E:/Qt/6.10.2/msvc2022_64）与随机调试端口，
+# Qt Creator 会自动重新生成。
+# 想让队友共享这套 Debug/Release 预设：在下一行的值前加 "!"（即 !CMakeUserPresets.json）
+CMakeUserPresets.json
+
+# ---------- 编译中间产物 / 二进制 ----------
+*.obj
+*.o
+*.lo
+*.a
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.idb
+*.exe
+*.dll
+*.so
+*.dylib
+*.app/
+# 增量链接与调试符号残留
+*.iobj
+*.ipdb
+*.pgc
+*.pgd
+*.gcda
+*.gcno
+
+# ---------- Qt 生成物 ----------
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmake.stash
+*.qm
+
+# ---------- 运行 / 压测产物 ----------
+# k6 的 --out json / --summary-export 输出、日志等
+/results/
+/logs/
+*.ndjson
+
+# ---------- 系统垃圾 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
