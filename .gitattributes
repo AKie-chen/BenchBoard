@@ -1,0 +1,12 @@
+# 行尾策略
+#
+# ★ 为什么必须有这个文件：本机 core.autocrlf=true，它会在 *checkout* 时把文本
+#   文件转成 CRLF。对 .cpp/.h 无所谓（MSVC 两种都认），但对 shell 脚本是致命的：
+#   CRLF 的 .sh 在 Git Bash 里会报 `\r: command not found` ——
+#   而且是在**下一次 clone/checkout 之后**才发作，属于「今天不报错、明天才坏」的那类。
+#
+# 所以脚本类文件显式固定为 LF，不受 autocrlf 影响。
+
+*.sh    text eol=lf
+*.py    text eol=lf
+*.js    text eol=lf

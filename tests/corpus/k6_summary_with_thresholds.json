@@ -1,0 +1,36 @@
+{
+    "root_group": {
+        "name": "",
+        "checks": {
+            "status is 200": {
+                "passes": 1112,
+                "fails": 0,
+                "name": "status is 200",
+                "path": "::status is 200"
+            }
+        }
+    },
+    "metrics": {
+        "http_reqs": {
+            "count": 1112,
+            "rate": 111.18295565289841
+        },
+        "http_req_duration": {
+            "avg": 8.223578327338119,
+            "min": 0.5415,
+            "med": 8.0112,
+            "max": 14.8323,
+            "p(90)": 9.543429999999999,
+            "p(95)": 10.451295,
+            "p(99)": 12.128175000000002,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 1112,
+            "value": 0
+        }
+    }
+}

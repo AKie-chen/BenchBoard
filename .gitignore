@@ -1,0 +1,28 @@
+# 构建产物
+out/
+build/
+*.obj
+*.pdb
+*.ilk
+*.exp
+
+# k6 运行时中间产物
+# 注意：不要忽略整个 reports/ —— M6 生成的 *.md 报告是要进仓库的
+summary.json
+*.json.tmp
+
+# Qt Creator / Visual Studio / VS Code
+*.user
+*.user.*
+CMakeLists.txt.user*
+# Qt Creator 生成的机器相关预设（★ .gitignore 不支持行尾注释，注释必须独占一行）
+CMakeUserPresets.json
+compile_commands.json
+.vs/
+.qtcreator/
+.vscode/*.log
+
+# 临时文件
+*.bak
+*.bak.*
+*.tmp
