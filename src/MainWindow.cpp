@@ -30,8 +30,18 @@ namespace {
 // ★ 跟可执行文件走（<exe 同级>/reports），而不是写死某个盘符：
 //   换机器、换盘符、换 clone 路径都不用改代码，它也不会去污染源码目录。
 //   目录不存在由编排层的 mkpath 创建（见 TestOrchestrator::startTest）。
-const QString kReportsDir = QCoreApplication::applicationDirPath()
-                          + QStringLiteral("/reports");
+//
+// ★ 必须是【函数】不能是命名空间作用域的常量 —— 这是实测踩过的：
+//   QCoreApplication::applicationDirPath() 需要一个活着的 QApplication 实例，
+//   而命名空间常量在 main() 之前就求值了，那时它返回【空串】。
+//   拼出来的 "/reports" 会被 Windows 解析成【当前盘符的根目录】：
+//   从 E 盘启动就写 E:/reports，从 C 盘启动就写 C:/reports —— 与上面注释
+//   声称的"不会污染源码目录"恰好相反，且可能需要盘根写权限。
+//   （实测：报告全部落到 E:/reports，一个都没进 <exe 同级>/reports。）
+QString reportsDir()
+{
+    return QCoreApplication::applicationDirPath() + QStringLiteral("/reports");
+}
 
 // 汇总面板的行号：第一列是"指标"，第二列是"数值"
 constexpr int kRowRequests = 0;   // 请求总数
@@ -190,7 +200,7 @@ void MainWindow::onStartClicked()
     config.targetUrl  = m_urlEdit->text().trimmed();
     config.vus        = m_vusSpin->value();
     config.duration   = m_durationCombo->currentData().toString();
-    config.outputDir  = kReportsDir;
+    config.outputDir  = reportsDir();
     // ★ 引擎路径交给 K6Engine 探测（Program Files / Program Files (x86) /
     //   chocolatey 三处），不写死某一个安装位置。
     config.k6Path     = K6Engine::detectK6Path();
@@ -281,7 +291,7 @@ void MainWindow::onRunFinished(const TestRunResult &result, const QString &summa
         appendLog(QStringLiteral("（终值解析失败：%1 —— 已用实时数据兜底）").arg(summaryError));
 
     fillSummaryTable(result, summaryError);
-    appendLog(QStringLiteral("结果保存在 %1").arg(kReportsDir));
+    appendLog(QStringLiteral("结果保存在 %1").arg(reportsDir()));
 }
 
 void MainWindow::onFailed(const QString &reason)
