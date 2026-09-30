@@ -1,0 +1,100 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "Qt",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{QTDIR}"
+      },
+      "vendor": {
+        "qt-project.org/Qt": {
+          "checksum": "wVa86FgEkvdCTVp1/nxvrkaemJc="
+        }
+      }
+    },
+    {
+      "name": "base",
+      "hidden": true,
+      "displayName": "BenchBoard 预置基类",
+      "description": "工具链中立的基类：只定生成器、构建目录与编译数据库。Qt 位置由 CMakeLists 的三级回退解析（-DQT_DIR / 环境变量 QT_DIR / 环境变量 QTDIR）。",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/presets/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "default",
+      "inherits": "base",
+      "displayName": "RelWithDebInfo（日常）",
+      "description": "日常开发用。不要用 debug 跑压测 —— 见 README 的构建类型说明。",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "displayName": "Debug",
+      "description": "只在需要单步进 Qt/STL 内部时用；此配置下的性能数字没有参考价值。",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ci",
+      "inherits": "base",
+      "displayName": "CI（警告视为错误）",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "BENCHBOARD_WERROR": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "integration"
+        }
+      }
+    }
+  ],
+  "vendor": {
+    "qt-project.org/Presets": {
+      "checksum": "67SmY24ZeVbebyKD0fGfIzb/bGI="
+    }
+  }
+}

@@ -1,0 +1,93 @@
+name: CI
+
+# 什么时候跑：
+#   · push 到 main
+#   · 任何 PR
+#   · 也可以在 Actions 页面手动触发（workflow_dispatch）
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    # fail-fast: false —— 一个平台挂了，另一个平台的结果照样要看到。
+    # 默认的 true 会在第一个失败时取消其余 job，那样"到底是全平台都挂、
+    # 还是只有某个平台挂"这个最关键的信息就没了。
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows / MSVC
+            os: windows-latest
+          - name: Ubuntu / GCC
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Linux 侧：Qt 的构建需要 OpenGL 与 xkbcommon 的开发包。
+      # 运行时是离屏后端（QT_QPA_PLATFORM=offscreen，由 tests/CMakeLists.txt 设置），
+      # 所以不需要 X server，但编译期头文件仍然要有。
+      - name: 安装系统依赖（Linux）
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ninja-build \
+            libgl1-mesa-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0
+
+      - name: 安装 Qt 6（含 Charts）
+        uses: jurplel/install-qt-action@v4
+        with:
+          # ★ 这里刻意【不】跟本机的 6.10.2 对齐：
+          #   在另一个 Qt 版本上也能构建，本身就是"跨平台/跨版本"的证据；
+          #   若某天这条挂了，先看是不是用到了新版本才有的 API。
+          version: '6.8.3'
+          modules: 'qtcharts'
+          cache: true
+
+      # Windows 上默认的 shell 不带 MSVC 环境（cl / INCLUDE / LIB 都没有），
+      # 这一步把 VS 开发者环境装进后续步骤。
+      # ★ 本机的 vcvars 加载不了、要靠 tools/build.sh 手工拼环境 ——
+      #   那是本机特有问题，CI 上直接用官方 action 即可。
+      - name: 配置 MSVC 环境（Windows）
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # ci 预置 = RelWithDebInfo + BENCHBOARD_WERROR=ON（警告即错误）。
+      # 用 /WX 是有意的：这个项目的验收标准之一就是"0 警告"，
+      # 而"0 警告"只有在有人拦着的时候才守得住。
+      - name: 配置
+        run: cmake --preset ci
+        env:
+          # install-qt-action 把 Qt 根目录放在 QT_ROOT_DIR；
+          # CMakeLists.txt 的三级回退会读它（见根 CMakeLists 的说明）。
+          QT_DIR: ${{ env.QT_ROOT_DIR }}
+
+      - name: 构建
+        run: cmake --build --preset ci
+
+      # ci 测试预置已排除 integration 标签（需要本机装 k6 的那层）。
+      # 目前 tests/integration/ 还不存在，这条过滤是为将来准备的。
+      - name: 测试
+        run: ctest --preset ci
+
+      # 失败时把 CTest 的原始日志抬出来 —— 否则只能看到一个"某测试失败"，
+      # 拿不到断言的实际值/期望值，还得在本地复现才能定位。
+      - name: 上传失败日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-log-${{ matrix.os }}
+          path: |
+            out/presets/ci/Testing/Temporary/LastTest.log
+            out/presets/ci/Testing/Temporary/LastTestsFailed.log
+          if-no-files-found: ignore

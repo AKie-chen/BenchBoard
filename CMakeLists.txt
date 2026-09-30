@@ -1,4 +1,5 @@
-﻿cmake_minimum_required(VERSION 3.19)
+# 3.22 是测试用的 ENVIRONMENT_MODIFICATION 属性的下限（见 tests/CMakeLists.txt）。
+cmake_minimum_required(VERSION 3.22)
 project(BenchBoard VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -6,65 +7,99 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# MSVC 必须显式指定 UTF-8。
-# 不写的话源码里的中文（注释、界面字符串）会被按系统 GBK 代码页解码而乱码。
-# 已实测：加上后中文以 UTF-8 字节输出（E7 BB 93 = "结"）。
-if (MSVC)
-    add_compile_options(/utf-8 /W4)
+# ---------------------------------------------------------------------------
+# 警告配置
+#
+# 抽成接口目标而不是裸 add_compile_options()：裸写会【泄漏到子目录】——
+# add_subdirectory(tests) 之后每个测试目标都会莫名继承 /W4，而你没法只给
+# 某一个目标单独加。挂接口目标则粒度明确、可叠加、可单独关掉。
+# ---------------------------------------------------------------------------
+add_library(benchboard_warnings INTERFACE)
+
+if(MSVC)
+    # MSVC 必须显式指定 UTF-8。不写的话源码里的中文（注释、界面字符串）
+    # 会被按系统 GBK 代码页解码而乱码。
+    target_compile_options(benchboard_warnings INTERFACE /utf-8 /W4)
+else()
+    target_compile_options(benchboard_warnings INTERFACE -Wall -Wextra)
+endif()
+
+option(BENCHBOARD_WERROR "把警告当作错误（CI 用）" OFF)
+if(BENCHBOARD_WERROR)
+    if(MSVC)
+        target_compile_options(benchboard_warnings INTERFACE /WX)
+    else()
+        target_compile_options(benchboard_warnings INTERFACE -Werror)
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------
-# 【当前阶段：M4 —— 画第一条曲线】
+# Qt 定位（三级回退，优先级从高到低）
 #
-# TODO(M4-2) 本关你要改的就是下面这两处（★ 少改一处 = 链接期一堆未定义符号）：
-#     find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
-#     target_link_libraries(... Qt6::Widgets Qt6::Charts)
+#   ① -DQT_DIR=... / -DCMAKE_PREFIX_PATH=...  显式指定（预置与 CI 走这条）
+#   ② 环境变量 QT_DIR（tools/build.sh 用）/ QTDIR（Qt Creator 用）
+#   ③ 交给 CMake 自己在 PATH 与常见安装位置里找
 #
-# 为什么是"两处"而不是一处：find_package 负责让 CMake【找到】QtCharts 并把
-# 它的 include 目录加进来（编译期），target_link_libraries 负责把库连上（链接期）。
-# 只改第一处 → 编译过、链接报 QChartView 未定义；
-# 只改第二处 → CMake 直接报 "Qt6::Charts not found"。
-#
-# ★ Qt Charts 在 Qt 开源版是 GPLv3，README 里要声明（M7 收尾时补）。
+# 以前是裸 find_package() —— 等于把"Qt 在哪"只留在命令行里，
+# 换个入口（预置 / IDE / CI）就得重新解释一遍。
 # ---------------------------------------------------------------------------
+if(NOT CMAKE_PREFIX_PATH)
+    if(DEFINED QT_DIR AND NOT QT_DIR STREQUAL "")
+        set(CMAKE_PREFIX_PATH "${QT_DIR}")
+    elseif(DEFINED ENV{QT_DIR} AND NOT "$ENV{QT_DIR}" STREQUAL "")
+        set(CMAKE_PREFIX_PATH "$ENV{QT_DIR}")
+    elseif(DEFINED ENV{QTDIR} AND NOT "$ENV{QTDIR}" STREQUAL "")
+        set(CMAKE_PREFIX_PATH "$ENV{QTDIR}")
+    endif()
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
 
 # ---------------------------------------------------------------------------
-# 每完成一个里程碑，就往这里加一行；目标是不让任何时刻存在
-# 「源文件已存在但实现还没写」→ LNK2019 的状态。
+# 产品代码
+#
+# 除 main.cpp 外全部收进 benchboard_core：
+#   · exe 与 tests/ 下的测试链的是同一个库，不会出现"测的是另一份编译产物"
+#   · 新增一个 .cpp 只需要改这一处，不必去每个测试目标里补一行
 # ---------------------------------------------------------------------------
-set(BENCHBOARD_SOURCES
-    src/main.cpp
-    src/MainWindow.cpp
-    src/MainWindow.h
-    src/MetricsAggregator.cpp   # M3 新增
-    src/MetricsAggregator.h
-    src/types.h                 # M4 新增：从 _target/ 毕业，只搬了 WindowSample
-    src/RealtimeChartView.cpp   # M4 新增：骨架已就位（空实现），你往里填
-    src/RealtimeChartView.h
-    src/SummaryParser.cpp       # M5 新增：从 _target/ 毕业
-    src/SummaryParser.h
-    src/ReportWriter.cpp       
-    src/ReportWriter.h
-    src/K6Engine.cpp             # M7 新增：从 _target/ 毕业（引擎实现）
+add_library(benchboard_core STATIC
+    src/K6Engine.cpp
     src/K6Engine.h
     src/LoadEngine.h
+    src/MainWindow.cpp
+    src/MainWindow.h
+    src/MetricsAggregator.cpp
+    src/MetricsAggregator.h
+    src/RealtimeChartView.cpp
+    src/RealtimeChartView.h
+    src/ReportWriter.cpp
+    src/ReportWriter.h
+    src/SummaryParser.cpp
+    src/SummaryParser.h
     src/TestOrchestrator.cpp
     src/TestOrchestrator.h
+    src/types.h
 )
 
-add_executable(BenchBoard WIN32 ${BENCHBOARD_SOURCES})
-
-target_include_directories(BenchBoard PRIVATE src)
-
-target_link_libraries(BenchBoard PRIVATE
-    Qt6::Widgets
-    Qt6::Charts
+# PUBLIC：链 benchboard_core 的目标自动获得 src/ 的 include 路径
+target_include_directories(benchboard_core PUBLIC src)
+target_link_libraries(benchboard_core
+    PUBLIC  Qt6::Widgets Qt6::Charts
+    PRIVATE benchboard_warnings
 )
 
-# 让 exe 输出到 out/build/bin/，tools/build.sh 依赖这个路径
-if (WIN32)
+add_executable(BenchBoard WIN32 src/main.cpp)
+target_link_libraries(BenchBoard PRIVATE benchboard_core benchboard_warnings)
+
+# 让 exe 输出到 <build>/bin/，tools/build.sh 依赖这个路径
+if(WIN32)
     set_target_properties(BenchBoard PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 endif()
+
+# ---------------------------------------------------------------------------
+# 测试
+# ---------------------------------------------------------------------------
+enable_testing()
+add_subdirectory(tests)

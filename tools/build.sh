@@ -15,6 +15,7 @@
 # 用法：
 #   bash tools/build.sh          # 配置 + 构建
 #   bash tools/build.sh run      # 配置 + 构建 + 运行
+#   bash tools/build.sh test     # 配置 + 构建 + 跑测试（ctest）
 #   bash tools/build.sh clean    # 删除构建目录后重建
 # ============================================================================
 set -u
@@ -101,6 +102,18 @@ BLD=$?
 
 EXE="$BUILD_DIR/bin/BenchBoard.exe"
 echo ">> 构建成功: $EXE"
+
+# ---------- 测试（可选）----------
+# ★ 必须用上面的 CLEANPATH：ctest 随 Qt 自带的 CMake 一起装在 Qt Tools 里，
+#   默认 PATH 上不一定有。
+#   加 -LE integration 之外的过滤条件时，直接跟在命令后面，例如：
+#     bash tools/build.sh test -L unit
+if [ "${1:-}" = "test" ]; then
+  shift
+  echo ">> 运行测试"
+  PATH="$CLEANPATH" ctest --test-dir "$BUILD_DIR" --output-on-failure "$@"
+  exit $?
+fi
 
 # ---------- 运行（可选）----------
 # 必须把 Qt 的 bin 加回 PATH，否则找不到 Qt6Core.dll 而静默退出
