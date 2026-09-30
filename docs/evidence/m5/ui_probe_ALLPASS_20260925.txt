@@ -1,0 +1,58 @@
+已备份 summary.json -> E:/BenchBoard/.workbuddy/tmp/m5ui/summary.json.bak
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+Binary file build.log matches
+
+
+========== Part A：汇总表格结构 ==========
+  [PASS] A1 表格控件存在（findChild<QTableWidget*>） 
+  [PASS] A2 6 行 × 2 列                                rowCount=6 colCount=2
+  [PASS] A3 表头 = {指标, 数值}                     {指标, 数值}
+  [PASS] A4 表格尺寸非空（真的进了布局）    1082 x 180
+
+========== Part B：三张图（像素判据） ==========
+  [PASS] B1 RealtimeChartView 挂在 MainWindow 上       
+  [PASS] B2 找到 3 个 QChartView                       实际 3
+        chart 标题       series 点数 绑定轴 彩色像素 判定
+        请求速率 RPS        1     36        2        501     OK
+  [PASS] B3 请求速率 RPS 画出了曲线              彩色像素 = 501 (>200)
+        虚拟用户数 VU      1     36        2        625     OK
+  [PASS] B4 虚拟用户数 VU 画出了曲线            彩色像素 = 625 (>200)
+        响应时间            2     72        2       1136     OK
+  [PASS] B5 响应时间 画出了曲线                  彩色像素 = 1136 (>200)
+
+========== Part C：正常退出 → 读 summary.json（★ 三源对账） ==========
+  [PASS] C0 装入语料样本作为 summary.json         E:/BenchBoard/tests/corpus/k6_summary_sample.json
+  [PASS] C0b 探针可独立解析原始 JSON             
+  [PASS] C0c 语料 count == 文档记录值 4375         JSON=4375
+  [PASS] C0d 语料 avg == 文档记录值 3.09262256     JSON=3.09262256
+        (invokeMethod onEngineFinished 返回 true)
+  [PASS] C1 请求总数 == 4375                          表格=4375
+  [PASS] C2 失败数 == 0（语料 http_req_failed.value = 0） 表格=0
+  [PASS] C3 平均值 == "3.09 ms"                        表格=3.09 ms
+  [PASS] C4 p95 == "4.02 ms"                              表格=4.02 ms
+  [PASS] C5 p99 == "4.83 ms"                              表格=4.83 ms
+  [PASS] C6 来源行 = k6 汇总（summary.json）       实际=k6 汇总（summary.json）
+  [PASS] C7 表格请求总数 == 探针直读 JSON       表格=4375 直读=4375
+  [PASS] C8 表格 p95 == 探针直读 JSON p(95)         表格=4.02 ms 直读=4.02 ms
+
+========== Part D：★ 陈旧文件陷阱（连跑两轮，第二轮中途停） ==========
+  [PASS] D0 造一份"上一轮"的 summary.json (count=424242, 失败率=0.5) 
+        (invokeMethod onEngineFinished 返回 true)
+  [PASS] D1 第 1 轮（NormalExit）表格确实读了文件（=424242） 实际=424242
+  [PASS] D2 第 1 轮失败数 = round(0.5 × 424242) = 212121 实际=212121
+        (invokeMethod onEngineFinished 返回 true)
+  [PASS] D3 ★ 第 2 轮（CrashExit）表格【不】沿用上一轮文件 请求总数=0（不得为 424242）
+  [PASS] D4 来源行 = 实时统计（未经 k6 汇总） 实际=实时统计（未经 k6 汇总）
+  [PASS] D5 耗时三行如实显示 "—"（实时侧没有分布） avg/p95/p99 = — / — / —
+  [PASS] D6 跨源对账：表格请求数 == 状态栏请求数 表格=0  状态栏=0
+
+==================== 汇总 ====================
+PASS = 28   FAIL = 0
+RESULT=ALL_PASS
+probe exit=0
+
+PNG 产物：E:/BenchBoard/.workbuddy/tmp/m5ui/ui_probe_view*.png
+已还原 summary.json

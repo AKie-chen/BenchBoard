@@ -1,0 +1,20 @@
+引擎已启动：
+{"type":"Metric","data":{"name":"http_reqs","type":"counter","contains":"default","thresholds":[],"submetrics":null},"metric":"http_reqs"}
+{"metric":"http_reqs","type":"Point","data":{"time":"2026-09-23T13:25:08.5525003+08:00","value":1,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_duration","type":"trend","contains":"time","thresholds":["p(95)<500"],"submetrics":[{"name":"http_req_duration{expected_response:true}","suffix":"expected_response:true","tags":{"expected_response":"true"}}]},"metric":"http_req_duration"}
+{"metric":"http_req_duration","type":"Point","data":{"time":"2026-09-23T13:25:08.5525003+08:00","value":45.5492,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_blocked","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_blocked"}
+{"metric":"http_req_blocked","type":"Point","data":{"time":"2026-09-23T13:25:08.5525003+08:00","value":2.4791,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_connecting","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_connecting"}
+{"metric":"http_req_connecting","type":"Point","data":{"time":"2026-09-23T13:25:08.5525003+08:00","value":2.4791,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_tls_handshaking","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_tls_handshaking"}
+{
+已接收 5006 行 / 1.1 MB
+已接收 10007 行 / 2.3 MB
+已接收 15009 行 / 3.4 MB
+已接收 20077 行 / 4.6 MB
+引擎已结束：
+已接收 20821 行 / 20782 点 / 4.8 MB
+其中 23 行不是 JSON（k6 结尾的人类摘要，正常）
+结果保存在 E:/BenchBoard/reports
+引擎正常结束（退出码 0）

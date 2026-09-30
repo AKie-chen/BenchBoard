@@ -1,0 +1,24 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+build issues: 0
+cleared old report
+=== 运行 M3 端到端探针（真实 windows 平台，8 VU / 10s，mode=normal）===
+probe exit=3
+=== probe.log ===
+
+!!! 环境自检失败 !!!
+本机 QProcess 无法启动任何子进程（连 where.exe 都起不来）：pipe: ϵͳ�Ҳ���ָ�����ļ���
+=> 界面级断言无法进行。这是【环境问题】，不是 M3/M4 的代码缺陷。
+=> 请在桌面会话里直接运行 BenchBoard.exe 手工验证。
+RESULT=ENV_NO_QPROCESS
+
+=== summary.json ===
+(无 summary.json —— 中途停止时不产出是已知行为)
+=== 残留 k6 进程 ===
+(无 k6 残留)
+=== 产物 ===
+-rw-r--r-- 1 lemo 197121    18 Sep 24 12:21 E:/BenchBoard/.workbuddy/tmp/m3e2e/log_dump.txt
+-rw-r--r-- 1 lemo 197121 18390 Sep 24 12:21 E:/BenchBoard/.workbuddy/tmp/m3e2e/m3_e2e.png
+-rw-r--r-- 1 lemo 197121  1577 Sep 24 12:21 E:/BenchBoard/.workbuddy/tmp/m3e2e/status_samples.txt

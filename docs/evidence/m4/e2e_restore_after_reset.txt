@@ -1,0 +1,51 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+build issues: 0
+cleared old report
+=== 运行 M3 端到端探针（真实 windows 平台，8 VU / 10s，mode=normal）===
+probe exit=0
+=== probe.log ===
+环境自检通过：QProcess 可以启动子进程
+set url = http://127.0.0.1:8899/
+clicked start, sampler started
+
+=== 状态栏采样序列（每 500ms 一条，去重后）===
+  | �Ѳɼ� 0 �� | ���� 0 �� | ʧ�� 0 | ���� 0.0s
+  | �Ѳɼ� 13446 �� | ���� 961 �� | ʧ�� 0 | ���� 1.0s
+  | �Ѳɼ� 29482 �� | ���� 2106 �� | ʧ�� 0 | ���� 2.0s
+  | �Ѳɼ� 46765 �� | ���� 3341 �� | ʧ�� 0 | ���� 3.0s
+  | �Ѳɼ� 64542 �� | ���� 4610 �� | ʧ�� 0 | ���� 4.0s
+  | �Ѳɼ� 80702 �� | ���� 5764 �� | ʧ�� 0 | ���� 5.0s
+  | �Ѳɼ� 97609 �� | ���� 6972 �� | ʧ�� 0 | ���� 6.0s
+  | �Ѳɼ� 114034 �� | ���� 8145 �� | ʧ�� 1 | ���� 7.0s
+  | �Ѳɼ� 131655 �� | ���� 9403 �� | ʧ�� 2 | ���� 8.0s
+  | �Ѳɼ� 147503 �� | ���� 10535 �� | ʧ�� 10 | ���� 9.0s
+  | �Ѳɼ� 165689 �� | ���� 11834 �� | ʧ�� 46 | ���� 10.0s
+  | �Ѳɼ� 169350 �� | ���� 12095 �� | ʧ�� 55 | ���� 11.0s
+  | �Ѳɼ� 169350 �� | ���� 12095 �� | ʧ�� 55 | ���� 11.1s
+采样 28 次，出现 13 种不同内容
+
+=== 断言结果 ===
+A1 状态栏刷新过(>=3 种内容)      : PASS  (实际 13 种)
+A2 点数序列单调不减(>=3 个采样)  : PASS  (抠到 28 个数字)
+A3 结束时点数 > 0                : PASS  (最大 169350)
+A4 引擎结束后状态栏复位          : 见下面 LABEL 行
+
+LOG_CHARS=2523
+BTN  ��ʼѹ��     enabled=1
+BTN  ֹͣ         enabled=0
+LABEL             = Ŀ�� URL
+LABEL             = ���� VU
+LABEL             = ʱ��
+LABEL             = ���棺δ����
+
+=== summary.json ===
+-rw-r--r-- 1 lemo 197121 4199 Sep 24 17:36 E:/BenchBoard/reports/summary.json
+=== 残留 k6 进程 ===
+(无 k6 残留)
+=== 产物 ===
+-rw-r--r-- 1 lemo 197121  2751 Sep 24 17:37 E:/BenchBoard/.workbuddy/tmp/m3e2e/log_dump.txt
+-rw-r--r-- 1 lemo 197121 37659 Sep 24 17:37 E:/BenchBoard/.workbuddy/tmp/m3e2e/m3_e2e.png
+-rw-r--r-- 1 lemo 197121  1801 Sep 24 17:37 E:/BenchBoard/.workbuddy/tmp/m3e2e/status_samples.txt

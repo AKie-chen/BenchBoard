@@ -1,0 +1,13 @@
+>> 工具链: MSVC 14.44.35207 / SDK 10.0.26100.0
+>> 构建类型: RelWithDebInfo
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR) 
+-- Configuring done (0.4s)
+-- Generating done (0.2s)
+-- Build files have been written to: E:/BenchBoard/out/build
+[1/5] Automatic MOC for target BenchBoard
+[2/5] Building CXX object CMakeFiles\BenchBoard.dir\BenchBoard_autogen\mocs_compilation.cpp.obj
+[3/5] Building CXX object CMakeFiles\BenchBoard.dir\src\RealtimeChartView.cpp.obj
+[4/5] Building CXX object CMakeFiles\BenchBoard.dir\src\MainWindow.cpp.obj
+[5/5] Linking CXX executable bin\BenchBoard.exe
+>> 构建成功: E:/BenchBoard/out/build/bin/BenchBoard.exe

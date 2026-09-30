@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.19)
+project(m5paint LANGUAGES CXX)
+# --- 仓库根目录 ---------------------------------------------------------
+# 默认从本文件位置反推（在 tools/probes/ 就地构建时用）。
+# xxx_run.sh 会把探针源码复制到临时目录再构建，那时由脚本传 -DBENCHBOARD_ROOT= 覆盖。
+if(NOT DEFINED BENCHBOARD_ROOT)
+  get_filename_component(BENCHBOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+endif()
+add_compile_definitions("BENCHBOARD_ROOT=\"${BENCHBOARD_ROOT}\"")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+if (MSVC)
+  add_compile_options(/utf-8 /W4)
+endif()
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
+
+set(USER_SRC "${BENCHBOARD_ROOT}/src")
+
+# ★ 链接【真实的】src/RealtimeChartView.cpp —— 探针的目的是体检用户写的实现
+add_executable(m5paint m5_chart_paint_probe.cpp
+  ${USER_SRC}/RealtimeChartView.cpp
+  ${USER_SRC}/RealtimeChartView.h
+  ${USER_SRC}/types.h)
+
+target_include_directories(m5paint PRIVATE ${USER_SRC})
+target_link_libraries(m5paint PRIVATE Qt6::Widgets Qt6::Charts)

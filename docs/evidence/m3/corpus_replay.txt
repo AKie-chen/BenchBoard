@@ -1,0 +1,37 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+=== replay ===
+语料: E:/BenchBoard/tests/corpus/k6_stream_sample_2k.jsonl
+字节=477903  换行符=2000
+
+[模式① 整块喂]
+  lines          got=2000     want=2000      PASS
+  metricDecls    got=14       want=14        PASS
+  points         got=1986     want=1986      PASS
+  requests       got=142      want=142       PASS
+  failedCount    got=0        want=0         PASS
+  parseErrors    got=0        want=0         PASS
+  bytes          got=477903   want=477903    PASS
+
+[模式② 每 7 字节喂一次 —— 逼出半行残留路径]
+  lines          got=2000     want=2000      PASS
+  metricDecls    got=14       want=14        PASS
+  points         got=1986     want=1986      PASS
+  requests       got=142      want=142       PASS
+  failedCount    got=0        want=0         PASS
+  parseErrors    got=0        want=0         PASS
+
+[模式① vs 模式② 逐字段一致]
+  PASS 切行粒度不影响结果
+
+[边界]
+  脏行 3 条   lines=4 parseErrors=4  PASS
+  半行挂起   lines=0 pending=20  PASS
+  半行接上   lines=1 points=1 vus=7 pending=0  PASS
+  reset()        PASS
+  stop() 定格  elapsedMs=0  PASS
+
+RESULT=ALL_PASS
+probe exit=0

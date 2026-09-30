@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.19)
+project(summary_parser_probe LANGUAGES CXX)
+# --- 仓库根目录 ---------------------------------------------------------
+# 默认从本文件位置反推（在 tools/probes/ 就地构建时用）。
+# xxx_run.sh 会把探针源码复制到临时目录再构建，那时由脚本传 -DBENCHBOARD_ROOT= 覆盖。
+if(NOT DEFINED BENCHBOARD_ROOT)
+  get_filename_component(BENCHBOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+endif()
+add_compile_definitions("BENCHBOARD_ROOT=\"${BENCHBOARD_ROOT}\"")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if (MSVC)
+    add_compile_options(/utf-8 /W4)
+endif()
+
+# 只用 Qt Core —— SummaryParser 是纯解析，不碰 Widgets。
+# 所以这个探针不需要 QApplication，也不需要 QProcess，在哪都能跑。
+find_package(Qt6 REQUIRED COMPONENTS Core)
+
+set(USER_SRC "${BENCHBOARD_ROOT}/src")
+
+add_executable(summary_parser_probe
+    main.cpp
+    ${USER_SRC}/SummaryParser.cpp ${USER_SRC}/SummaryParser.h
+    ${USER_SRC}/types.h
+)
+
+target_include_directories(summary_parser_probe PRIVATE ${USER_SRC})
+target_link_libraries(summary_parser_probe PRIVATE Qt6::Core)

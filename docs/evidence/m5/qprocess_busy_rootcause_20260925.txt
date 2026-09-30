@@ -1,0 +1,27 @@
+MSVC=14.44.35207  SDK=10.0.26100.0
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+
+=== è¿è¡Œï¼ˆâ˜… QT_LOGGING_TO_CONSOLE=1ï¼šä¸åŠ çš„è¯ qWarning èµ° OutputDebugStringï¼Œä¸€æ¡éƒ½çœ‹ä¸è§ï¼‰===
+
+========== A) SeparateChannelsï¼ˆé»˜è®¤ï¼ŒQt èµ°å‘½åç®¡é“ï¼‰ ==========
+warning: Environment variable QT_LOGGING_TO_CONSOLE is deprecated, use
+QT_ASSUME_STDERR_HAS_CONSOLE and/or QT_FORCE_STDERR_LOGGING instead.
+QProcess: CreateFile failed. (ËùÓĞµÄ¹ÜµÀ·¶Àı¶¼ÔÚÊ¹ÓÃÖĞ¡£)
+  [errorOccurred] code=0  errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>  (0=FailedToStart 1=Crashed 2=Timedout)
+  waitForStarted -> 0    state=0    errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>
+
+========== B) ForwardedChannelsï¼ˆä¸èµ°ç®¡é“ï¼Œç›´æ¥ç»§æ‰¿çˆ¶è¿›ç¨‹å¥æŸ„ï¼‰ ==========
+QProcess: CreateFile failed. (ËùÓĞµÄ¹ÜµÀ·¶Àı¶¼ÔÚÊ¹ÓÃÖĞ¡£)
+  [errorOccurred] code=0  errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>  (0=FailedToStart 1=Crashed 2=Timedout)
+  waitForStarted -> 0    state=0    errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>
+
+========== C) MergedChannels + setStandardOutputFileï¼ˆè¾“å‡ºåˆ°æ–‡ä»¶ï¼‰ ==========
+QProcess: CreateFile failed. (ËùÓĞµÄ¹ÜµÀ·¶Àı¶¼ÔÚÊ¹ÓÃÖĞ¡£)
+  [errorOccurred] code=0  errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>  (0=FailedToStart 1=Crashed 2=Timedout)
+  waitForStarted -> 0    state=0    errorString=<pipe: ÏµÍ³ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş¡£>
+
+=== è¯Šæ–­ç»“æŸ ===
+exit=0

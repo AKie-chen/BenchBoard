@@ -1,0 +1,26 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+
+########## M4 守恒断言 ##########
+语料: 477903 字节（期望 requests = 142）
+
+--- 第一轮：整块喂入全部语料 ---
+  [PASS] A1  [守恒] ΣrequestCount == 142  （少了=丢数据，多了=重复计）
+  [PASS] A2  至少一个 sample.epochMs != 0  （曲线 X 轴的基准时间）
+  [PASS] A3  至少一个 sample.rps > 0
+  [PASS] A4  第二次 takeWindow 是空窗口  （『取走』语义：水位已推到当前位置）
+
+--- 曲线侧：QLineSeries 里到底有没有点 ---
+  [PASS] A5  能从控件里找到 QLineSeries（chart 装配 + attachAxis 到位）
+  [PASS] A6  曲线点数 == 喂进去的 sample 数
+  [PASS] A7  曲线 y 值不全为 0  ★『有图没线』的直接判据
+
+--- 第二轮：reset() 后重跑 ---
+  [PASS] A8  reset() 后重跑 Σ 仍是 142 而非 284  （水位清干净了）
+
+================ 结果 ================
+PASS 8 / FAIL 0
+RESULT=ALL_PASS
+probe exit=0

@@ -1,0 +1,51 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+Binary file build.log matches
+
+========== Part A：attachAxis / addSeries 顺序 A/B ==========
+
+        qWarning: [WARNING] QFontDatabase: Cannot find font directory E:/Qt/6.10.2/msvc2022_64/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+        qWarning: [WARNING] Series not in the chart. Please addSeries to chart first.
+        qWarning: [WARNING] Series not in the chart. Please addSeries to chart first.
+
+
+组                                  attX   attY 入chart后     点数 彩色像素
+------------------------------------------------------------------------------------------
+A �飺�� attachAxis �� addSeries    false  false          0          6          0
+B �飺�� addSeries �� attachAxis     true   true          2          6        842
+
+判据：彩色像素 > 200 才算「真的画出了曲线」。
+        qWarning: [WARNING] This plugin does not support propagateSizeHints()
+        qWarning: [WARNING] This plugin does not support propagateSizeHints()
+
+=== Part B：真实 RealtimeChartView 里找到 3 个 QChartView ===
+chart 标题           series数 点数 绑定轴数 彩色像素       判定
+------------------------------------------------------------------------------------------
+�������� RPS                  1     36          2        501           OK
+�����û��� VU                 1     36          2        625           OK
+��Ӧʱ��                      2     72          4       1136           OK
+        qWarning: [WARNING] This plugin does not support propagateSizeHints()
+        qWarning: [WARNING] This plugin does not support propagateSizeHints()
+
+=== Part C：正确顺序重建三图（= 修好后应该长什么样）===
+chart 标题       series数 点数 绑定轴数 彩色像素   判定
+--------------------------------------------------------------------------------
+�������� RPS              1     36          2        775       OK
+�����û���                1     36          2        919       OK
+��Ӧʱ��                  2     72          4       1079       OK
+
+=== 本次捕获到的 qWarning（7 条）===
+  [WARNING] QFontDatabase: Cannot find font directory E:/Qt/6.10.2/msvc2022_64/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+  [WARNING] Series not in the chart. Please addSeries to chart first.
+  [WARNING] Series not in the chart. Please addSeries to chart first.
+  [WARNING] This plugin does not support propagateSizeHints()
+  [WARNING] This plugin does not support propagateSizeHints()
+  [WARNING] This plugin does not support propagateSizeHints()
+  [WARNING] This plugin does not support propagateSizeHints()
+probe exit=0
+
+PNG 产物：E:/BenchBoard/.workbuddy/tmp/m5paint/paint_probe_view*.png

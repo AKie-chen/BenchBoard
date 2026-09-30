@@ -58,10 +58,10 @@ signals:
     //     void rawSample(MetricKind kind, qint64 epochMs, double value, bool success);
     //   那是 M1 的设计（引擎解析 → 聚合器只数数）。M3 实写时改成了「聚合器主动吃字节」，
     //   这条信号的消费者当场归零 —— 全仓 grep：0 处 emit、0 处 connect。
-    //   所以删掉，换成下面的字节信号。完整记录见 `_target/README.md` 的「契约修正记录」。
+    //   所以删掉，换成下面的字节信号。
     //
     //   代价（已知并接受）：引擎抽象降级成了"字节管道"—— 换 vegeta 时聚合器仍要改。
-    //   这笔债立成了 M8 候选（`docs/01` 路线总览表 + 文末卡片）。
+    //   这笔债记为【已知遗留】：换引擎时聚合器仍要改。
     //
     // 引擎吐出的原始输出字节。k6 是 stdout 上的 JSON 行流（每条一行、带 '\n'）。
     // MetricsAggregator::feed() 直接吃它 —— 拆行 / 半行残留 / JSON 解析都在那边。

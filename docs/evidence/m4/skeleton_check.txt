@@ -1,0 +1,29 @@
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+
+########## ① heap 模式：TODO 示例代码能否落地 ##########
+模式: heap
+
+  series->attachedAxes().size() = 2  (期望 2)
+  喂 300 点后 series->count() = 100  (期望 100，限长生效)
+  最后一点 = (299.0, 399.0)   轴范围 0 ~ 300.0
+  reset() 后 series->count() = 0  (期望 0)
+  reset 后首点 = (0.0, 42.0)  (期望 x=0, y=42)
+  空窗口: requestCount=0 rps=0  (期望 0 / 0，不能是 inf/nan)
+  满窗口: requestCount=500 rps=500.0  (期望 500 / 500)
+
+RESULT=ALL_PASS
+heap exit=0
+
+########## ② stack 模式：栈分配会不会崩 ##########
+模式: stack
+
+  [栈版] ① 栈对象已建好（chart / series / axisX / axisY）
+  [栈版] ② 已装配：addSeries / addAxis / attachAxis
+  [栈版] ③ view.show() 返回了
+  [栈版] ④ processEvents 也过了，函数即将返回，栈对象将被析构…
+stack exit=127
+
+（stack 模式 exit 非 0 = 复现了「必须堆分配」；exit=0 = 本次未复现，如实记录）

@@ -1,0 +1,20 @@
+set url = http://127.0.0.1:8899/
+clicked start, sampler started
+
+=== 状态栏采样序列（每 500ms 一条，去重后）===
+  | ����
+采样 28 次，出现 1 种不同内容
+
+=== 断言结果 ===
+A1 状态栏刷新过(>=3 种内容)      : FAIL  (实际 1 种)
+A2 点数序列单调不减(>=3 个采样)  : FAIL  (抠到 0 个数字)
+A3 结束时点数 > 0                : FAIL  (最大 0)
+A4 引擎结束后状态栏复位          : 见下面 LABEL 行
+
+LOG_CHARS=2128
+BTN  ��ʼѹ��     enabled=1
+BTN  ֹͣ         enabled=0
+LABEL             = Ŀ�� URL
+LABEL             = ���� VU
+LABEL             = ʱ��
+LABEL             = ���棺δ����

@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.19)
+project(m4skeleton LANGUAGES CXX)
+# --- 仓库根目录 ---------------------------------------------------------
+# 默认从本文件位置反推（在 tools/probes/ 就地构建时用）。
+# xxx_run.sh 会把探针源码复制到临时目录再构建，那时由脚本传 -DBENCHBOARD_ROOT= 覆盖。
+if(NOT DEFINED BENCHBOARD_ROOT)
+  get_filename_component(BENCHBOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+endif()
+add_compile_definitions("BENCHBOARD_ROOT=\"${BENCHBOARD_ROOT}\"")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+if (MSVC)
+  add_compile_options(/utf-8 /W4)
+endif()
+
+# M4 起需要 Charts（这张表就是 CMakeLists.txt 里 M4-2 要做的那两处改动）
+find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
+
+set(USER_SRC "${BENCHBOARD_ROOT}/src")
+
+# ★ 注意：这里【不】链接真实的 src/RealtimeChartView.cpp ——
+#   因为本探针的 main.cpp 里已经实现了它的成员函数（为了验证 TODO 的示例代码），
+#   两个都进来就是 LNK2005 重复定义。
+#   真实工程里当然要链接它，那是它存在的意义。
+add_executable(m4skeleton main.cpp
+  ${USER_SRC}/RealtimeChartView.h
+  ${USER_SRC}/types.h)
+
+target_include_directories(m4skeleton PRIVATE ${USER_SRC})
+target_link_libraries(m4skeleton PRIVATE Qt6::Widgets Qt6::Charts)

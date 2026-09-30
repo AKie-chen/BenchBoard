@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 3.19)
+project(m6report LANGUAGES CXX)
+# --- 仓库根目录 ---------------------------------------------------------
+# 默认从本文件位置反推（在 tools/probes/ 就地构建时用）。
+# xxx_run.sh 会把探针源码复制到临时目录再构建，那时由脚本传 -DBENCHBOARD_ROOT= 覆盖。
+if(NOT DEFINED BENCHBOARD_ROOT)
+  get_filename_component(BENCHBOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+endif()
+add_compile_definitions("BENCHBOARD_ROOT=\"${BENCHBOARD_ROOT}\"")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+if (MSVC)
+  add_compile_options(/utf-8 /W4)
+endif()
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Charts)
+
+set(USER_SRC "${BENCHBOARD_ROOT}/src")
+
+# ★ 链接【真实的】实现文件 —— 探针体检的就是 ReportWriter 与 MainWindow 本身
+add_executable(m6report main.cpp
+  ${USER_SRC}/MainWindow.cpp        ${USER_SRC}/MainWindow.h
+  ${USER_SRC}/MetricsAggregator.cpp ${USER_SRC}/MetricsAggregator.h
+  ${USER_SRC}/RealtimeChartView.cpp ${USER_SRC}/RealtimeChartView.h
+  ${USER_SRC}/SummaryParser.cpp     ${USER_SRC}/SummaryParser.h
+  ${USER_SRC}/ReportWriter.cpp      ${USER_SRC}/ReportWriter.h
+  ${USER_SRC}/TestOrchestrator.cpp  ${USER_SRC}/TestOrchestrator.h   # M7 新增：界面唯一的后端入口
+  ${USER_SRC}/K6Engine.cpp          ${USER_SRC}/K6Engine.h
+  ${USER_SRC}/LoadEngine.h
+  ${USER_SRC}/types.h)
+
+target_include_directories(m6report PRIVATE ${USER_SRC})
+target_link_libraries(m6report PRIVATE Qt6::Widgets Qt6::Charts)

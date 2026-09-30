@@ -1,0 +1,88 @@
+configure exit=0
+build exit=0
+==================================================
+================ qprocess_startdiag ================
+# ★ 已过滤 10572 行 k6 "Request Failed" warning 噪声
+#   （测试目标 127.0.0.1:8918 未起服务，每个请求都会打一条；
+#    它证明 k6 真的在跑并打满了 VU，但与启动能力无关）
+env  QT_LOGGING_TO_CONSOLE   = (unset)
+env  QT_FORCE_STDERR_LOGGING = 1
+env  LSBOX_AUDIT_SHMEM       = (unset)
+exe  = C:/Program Files/k6/k6.exe
+exists = 1
+
+---------- [1] raw CreateProcessW ----------
+  STARTED. exitCode=99 (0x63) => 已退出
+  raw_stdout.txt     19482173 字节
+  raw_stderr.txt     1176009 字节
+
+---------- [2] QProcess::start()  SeparateChannels ----------
+  waitForStarted=1  state=2
+  finished exitCode=99
+  elapsed=1184ms
+
+---------- [3] QProcess::startDetached()  <== KEY ----------
+  startDetached() = 1   pid=0
+  errorString() = Unknown error
+  detached_stdout.txt     0 字节
+  detached_stderr.txt     0 字节
+
+---------- [4] 三种通道模式再跑一遍 start() ----------
+  SeparateChannels   waitForStarted=1  err=-
+  ForwardedChannels  waitForStarted=1  err=-
+  MergedChannels     waitForStarted=1  err=-
+
+---------- [5] startDetached(static) + k6 自己写文件 ----------
+  (不需要 Qt 重定向 -> 完全不碰任何管道，也不碰句柄继承)
+  static startDetached() = 1   pid=27088
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<500' p(95)=0s
+
+    http_req_failed
+    ✗ 'rate<0.01' rate=100.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 10572   5285.66436/s
+    checks_succeeded...: 0.00%   0 out of 10572
+    checks_failed......: 100.00% 10572 out of 10572
+
+    ✗ status is 200
+      ↳  0% — ✓ 0 / ✗ 10572
+
+    HTTP
+    http_req_duration....: avg=0s       min=0s med=0s max=0s      p(90)=0s     p(95)=0s    
+    http_req_failed......: 100.00% 10572 out of 10572
+    http_reqs............: 10572   5285.66436/s
+
+    EXECUTION
+    iteration_duration...: avg=371.48µs min=0s med=0s max=27.49ms p(90)=1.02ms p(95)=1.32ms
+    iterations...........: 10572   5285.66436/s
+    vus..................: 2       min=2              max=2
+    vus_max..............: 2       min=2              max=2
+
+    NETWORK
+    data_received........: 0 B     0 B/s
+    data_sent............: 0 B     0 B/s
+
+
+
+time="2026-09-25T17:42:04+08:00" level=error msg="thresholds on metrics 'http_req_failed' have been crossed"
+  进程结束=1  exitCode=99
+  sd2_metrics.json       38534320 字节
+  sd2_summary.json       2846 字节
+
+================ done ================
+exit=0
+==================================================
+产物目录：E:/BenchBoard/.workbuddy/tmp/qpdiag
+-rw-r--r-- 1 lemo 197121      398 Sep 25 17:41 E:/BenchBoard/.workbuddy/tmp/qpdiag/CMakeLists.txt
+-rw-r--r-- 1 lemo 197121  1076349 Sep 25 17:42 E:/BenchBoard/.workbuddy/tmp/qpdiag/detached_stderr.txt
+-rw-r--r-- 1 lemo 197121 17834257 Sep 25 17:42 E:/BenchBoard/.workbuddy/tmp/qpdiag/detached_stdout.txt
+-rw-r--r-- 1 lemo 197121  1176009 Sep 25 17:42 E:/BenchBoard/.workbuddy/tmp/qpdiag/raw_stderr.txt
+-rw-r--r-- 1 lemo 197121 19482173 Sep 25 17:42 E:/BenchBoard/.workbuddy/tmp/qpdiag/raw_stdout.txt

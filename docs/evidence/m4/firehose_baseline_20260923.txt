@@ -1,0 +1,152 @@
+BenchBoard · M4 开门阻塞 —— 火管速率与构建类型实测
+采集日期：2026-09-23 21:16 ~ 21:5x
+环境：Windows · Qt 6.10.2 (msvc2022_64) · k6 v2.2.0 · MSVC 14.44.35207 · SDK 10.0.26100.0
+机器：Ryzen 7 7735H (8C16T) / 16 GB
+
+触发场景（用户报告）
+----------------------------------------------------------------------------
+"跑了几次 10s / 8VU，两次都是运行快一分钟才测完，界面很卡，
+ 启动完之后打印 2KB 数据后界面就卡的什么都点不了了。"
+
+对照物：reports/summary.json（2026-09-23 21:09，用户那次跑的产物）
+  http_reqs.count = 99710
+  http_reqs.rate  = 9970.37   -> k6 自己认为的时长 = 99710 / 9970.37 = 10.00 s
+
+
+[1] k6 真实输出速率（stdout 重定向到文件，无读者瓶颈）
+----------------------------------------------------------------------------
+命令（参数与 MainWindow::onStartClicked 完全一致）：
+  unset http_proxy https_proxy
+  k6 run --quiet -o json=- --summary-export ... \
+     --summary-trend-stats "avg,min,med,max,p(90),p(95),p(99),p(99.9)" \
+     --vus 8 --duration 10s -e BASE_URL=http://127.0.0.1:8917/ \
+     examples/script_demo.js > capture.jsonl
+
+注：本次服务未起（连接秒拒），即 docs/02 §1 表里的「B：死目标」场景。
+
+  耗时      = 10 s（k6 退出码 99 = thresholds 被突破）
+  行数      = 2,137,971
+  字节      = 556,575,337 B = 530.8 MB
+  -> 213,797 行/s  /  55.7 MB/s
+
+指标分布（逐行统计 "metric" 字段）：
+  http_reqs                152708   7.14%
+  http_req_duration        152708   7.14%
+  http_req_blocked         152708   7.14%
+  http_req_connecting      152708   7.14%
+  http_req_tls_handshaking 152708   7.14%
+  http_req_sending         152708   7.14%
+  http_req_waiting         152708   7.14%
+  http_req_receiving       152708   7.14%
+  http_req_failed          152708   7.14%
+  checks                   152708   7.14%
+  data_sent                152708   7.14%
+  data_received            152708   7.14%
+  iteration_duration       152708   7.14%
+  iterations               152708   7.14%
+  <非 JSON / 其他>             37   0.00%   （k6 结尾人类摘要）
+  vus                          11   0.00%
+  vus_max                      11   0.00%
+  ---------------------------------------------------
+  -> 14 个指标，每个恰好 152,708 个点 = 每请求 14.0 行（完全均匀）
+
+行首格式（实测前 2 行）：
+  {"type":"Metric","data":{"name":"http_reqs","type":"counter",...},"metric":"http_reqs"}
+  {"metric":"http_reqs","type":"Point","data":{"time":"2026-09-23T21:16:09.8186758+08:00","value":1,"tags":{...}}}
+  -> 数据行固定以 {"metric":" 开头，metric 名在偏移 11 处 —— 可做 O(1) 预筛
+
+
+[2] 同一份数据喂进真实 MetricsAggregator（探针：tools/probes/firehose_replay_bench.cpp）
+----------------------------------------------------------------------------
+工具链：MSVC 14.44.35207 / SDK 10.0.26100.0，/W4 /utf-8，0 警告 0 错误
+
+--- Release ---
+[块= 32768] 现状(全量解析) 耗时   6476 ms | 330135 行/s | 82.0 MB/s | lines=2137957 points=2137918 req=152707 failed=152707 vus=8
+[块= 65536] 现状(全量解析) 耗时   6234 ms | 342951 行/s | 85.1 MB/s | lines=2137957 points=2137918 req=152707 failed=152707 vus=8
+[块= 32768] 候选(4/14 预筛)  耗时   1784 ms | 1198406 行/s | 297.5 MB/s | lines=2137957 points=458131 req=152707 failed=152707 vus=8
+            对账: req PASS  failed PASS  vus PASS
+            ★ 提速 = 3.63x  (旧 330135 行/s → 新 1198406 行/s)
+
+--- Debug（= apps 侧 tools/build.sh 的构建类型）---
+第一次跑（单遍，只测现状）：
+[块= 32768] 耗时 144,674 ms | 14,778 行/s | 3.7 MB/s | lines=2137957 points=2137918 requests=152707
+[块=  4096] 耗时 151,331 ms | 14,128 行/s | 3.5 MB/s
+[块= 65536] 耗时 137,832 ms | 15,511 行/s | 3.9 MB/s
+
+第二次跑（两遍，同一进程内 A/B，可比性更好）：
+[块=  32768] 现状(全量解析) 耗时 100,142 ms |  21349 行/s |  5.3 MB/s | lines=2137957 points=2137918 req=152707 failed=152707 vus=8
+[块=  65536] 现状(全量解析) 耗时  98,499 ms |  21705 行/s |  5.4 MB/s | lines=2137957 points=2137918 req=152707 failed=152707 vus=8
+[块=  32768] 候选(4/14 预筛)  耗时  25,397 ms |  84181 行/s | 20.9 MB/s | lines=2137957 points=458131 req=152707 failed=152707 vus=8
+            对账: req PASS  failed PASS  vus PASS
+            ★ 提速 = 3.94x  (旧 21349 行/s → 新 84181 行/s)
+
+--- 结论 ---
+Release 内部两遍一致（330,135 / 342,951 行/s，波动约 4%）。
+Debug   两次跑差 45%（14,778 vs 21,349 行/s）—— Debug 的成本大头在 debug CRT
+        的堆开销，对系统负载极敏感。所以 Debug 吞吐要按【区间】用：
+            Debug 现状吞吐 ≈ 14,800 ~ 21,300 行/s
+        Debug / Release ≈ 16 ~ 23 倍（两遍同进程 A/B：100,142 / 6,476 = 15.5 倍）
+
+--- 修复后复测：tools/build.sh 默认已改为 RelWithDebInfo ---
+[块=  32768] 现状(全量解析) 耗时  6447 ms |  331620 行/s | 82.3 MB/s
+[块=  65536] 现状(全量解析) 耗时  6030 ms |  354553 行/s | 88.0 MB/s
+[块=  32768] 候选(4/14 预筛)  耗时  1690 ms | 1265063 行/s | 314.1 MB/s
+            对账: req PASS  failed PASS  vus PASS
+            ★ 提速 = 3.81x
+  -> RelWithDebInfo 与 Release 吞吐一致（331,620 vs 330,135，差 0.4%），
+     【换构建类型没有性能代价】，同时保留 /Zi + PDB 可调试。
+  -> exe 依赖从 Qt6Cored.dll/Qt6Widgetsd.dll 变为 Qt6Core.dll/Qt6Gui.dll/Qt6Widgets.dll（已 strings 确认）。
+  -> 冒烟：QT_QPA_PLATFORM=offscreen timeout 3 → exit=124（正常）。
+  -> M3 管道单测回归：corpus_replay_probe RESULT=ALL_PASS。
+
+--- 修复后 app 相对于负载的余量 ---
+用户那次 1,396,000 行 / 10 s = 139,600 行/s
+新构建类型能力 331,620 行/s  ->  负载 ≈ 42%（可用，但余量不算宽裕）
+若再加 4/14 预筛 -> 1,265,063 行/s -> 负载 ≈ 11%
+
+
+[3] app 的构建类型与 Qt DLL 变体（直接取证）
+----------------------------------------------------------------------------
+out/build/CMakeCache.txt        : CMAKE_BUILD_TYPE:STRING=Debug
+strings out/build/bin/BenchBoard.exe | grep -i qt6.*dll :
+            Qt6Cored.dll
+            Qt6Widgetsd.dll
+  -> apps 侧连的是 Qt 的【Debug】版 DLL，与 /Od 叠加，构成上面 23.5 倍的来源
+
+
+[4] 复现用户那次的推算
+----------------------------------------------------------------------------
+99,710 请求 × 14.0 行/请求            = 1,396,000 行  （约 350 MB）
+app 的消费能力（Debug）= 14,800 ~ 21,300 行/s（取区间两端各算一次）
+  10 s 内吃掉                          ≈ 148,000 ~ 213,000 行
+  积压                                 ≈ 1,183,000 ~ 1,248,000 行
+  排空积压需要                         ≈ 56 s ~ 84 s
+
+  预测「点开始 → 界面宣布结束」总时长   ≈ 66 s ~ 94 s
+  用户实测                             ≈ 60 s（"快一分钟"）—— 落在预测区间内
+
+积压内存：QProcess 在 Windows 上用重叠 IO 把管道往自己的内部缓冲里抽干，
+不关心消费方进度，所以这 ≤ 350 MB 会实实在在地落在进程内存里。
+
+
+[5] 附带实测：QProcess 启动失败在界面上是完全静默的
+----------------------------------------------------------------------------
+探针：tools/probes/qprocess_start_check.cpp（本机当前环境下 QProcess 一律启动失败，
+      与本项目无关，仅用于取证错误路径）
+
+t=    0ms  [stateChanged]   Starting
+t=   10ms  [errorOccurred]  FailedToStart  (pipe: 系统找不到指定的文件。)
+t=   10ms  [stateChanged]   NotRunning
+
+同一现象在真实 MainWindow 上的表现（tools/probes/firehose_ui_probe.cpp 抓的截图）：
+  日志区  : 只有一行「引擎已启动：」（6 个字符）
+  状态栏左: 已采集 0 点 | 请求 0 次 | 失败 0 | 已跑 219.1s
+  状态栏右: 引擎：运行中
+  按钮    : 「开始压测」灰、「停止」可点
+             —— 与「k6 正在跑但还没输出」肉眼完全无法区分，
+                而且永远停在「运行中」（finished 永远不会来）。
+
+原因：MainWindow.cpp 只 connect 了
+        readyReadStandardOutput / readyReadStandardError / finished，
+      没有 connect QProcess::errorOccurred。
+      onEngineFinished 里对错过的错误路径没有兜底。

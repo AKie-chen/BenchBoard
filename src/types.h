@@ -3,16 +3,13 @@
 // ============================================================================
 // BenchBoard 全局数据结构
 //
-// ★ 这个文件是从 src/_target/types.h「毕业」过来的，而且是【分两批】搬的 ——
-//   这就是"一个文件可以分批毕业"的两次兑现：
-//     M4 批：WindowSample  —— 一个 1 秒窗口的聚合结果，图表上的一个点
-//     M5 批：TestConfig / CheckResult / TestRunResult
-//            —— 汇总面板与 Markdown 报告的数据源
-//   ★ 后三个为什么必须一起搬：TestRunResult 的字段里嵌着 TestConfig 和
-//     QVector<CheckResult> —— 【字段类型不完整就编译不过】。
-//     所以"毕业粒度"由依赖决定，不由"什么时候用得上"决定。
+// ★ 这个文件分两批成形，粒度是【由依赖决定的、不是由"什么时候用得上"决定的】：
+//     WindowSample —— 一个 1 秒窗口的聚合结果，图表上的一个点
+//     TestConfig / CheckResult / TestRunResult —— 汇总面板与报告的数据源
+//   后三个必须【一起】加：TestRunResult 的字段里嵌着 TestConfig 和
+//   QVector<CheckResult> —— 字段类型不完整就编译不过。
 //
-// 约定（沿用终态）：
+// 约定：
 //   - 本文件只放「纯数据」，不放逻辑、不引用 Qt Widgets
 //   - 数值单位统一：时间用 ms，时间戳用 Unix 毫秒（qint64）
 //   - 术语统一：RPS / VU / p95 / 窗口(window)

@@ -21,7 +21,8 @@
 | --- | --- | --- |
 | Qt | 6.10.2（Widgets + Charts） | 曲线绘制依赖 Charts 模块 |
 | MSVC | Visual Studio 2022（x64） | 目前仅在 Windows + MSVC 下验证 |
-| CMake | ≥ 3.19 | |
+| CMake | ≥ 3.22 | 测试用到 testPresets 与 ENVIRONMENT_MODIFICATION |
+| CTest | 随 CMake | `bash tools/build.sh test` 会自动调用 |
 | Ninja | 较新版本 | |
 | k6 | 建议 v2.x | **外部依赖，需自行安装** |
 
@@ -40,6 +41,7 @@ C:\ProgramData\chocolatey\bin\k6.exe
 ```bash
 bash tools/build.sh          # 配置 + 构建
 bash tools/build.sh run      # 配置 + 构建 + 运行
+bash tools/build.sh test     # 配置 + 构建 + 跑测试
 bash tools/build.sh clean    # 清理构建目录后重建
 ```
 
@@ -54,6 +56,29 @@ QT_DIR="D:/Qt/6.10.2/msvc2022_64" VS_ROOT="/c/VS2022" bash tools/build.sh
 | `QT_DIR` | `E:/Qt/6.10.2/msvc2022_64` | Qt 安装目录（Windows 形式） |
 | `QT_TOOLS_DIR` | `/e/Qt/Tools` | Qt 自带的 CMake / Ninja 所在目录 |
 | `VS_ROOT` | `/d/VS2022` | Visual Studio 安装目录（MSYS 形式） |
+
+也可以直接用 CMake 预置，不经过 `build.sh`：
+
+```bash
+export QT_DIR="E:/Qt/6.10.2/msvc2022_64"     # 没设则回落到 QTDIR
+cmake --preset default
+cmake --build --preset default
+ctest --preset default
+```
+
+注意预置只负责「生成器 + 构建目录 + 构建类型」，**不负责拼装 MSVC 环境**——
+所以要在已经能编译 C++ 的 shell 里跑（Visual Studio 开发者命令提示符、
+Qt Creator 的 kit 环境，或 `vcvars64.bat` 之后的终端）。
+本机 `vcvars` 加载不了，`build.sh` 就是为绕开它而存在的（见文件头注释）。
+
+| 预置 | 用途 |
+| --- | --- |
+| `default` | RelWithDebInfo，日常开发与跑测试 |
+| `debug` | Debug，只在需要单步进 Qt/STL 内部时用 |
+| `ci` | RelWithDebInfo + `BENCHBOARD_WERROR=ON`，警告即错误 |
+
+预置的构建目录是 `out/presets/<预置名>`，与 `build.sh` 的 `out/build`、
+Qt Creator 的 `out/build/debug`、`out/build/release` 互不覆盖，可以并存。
 
 也可以直接用 Visual Studio 打开根目录的 `CMakeLists.txt`（已附
 `CMakeSettings.json`）。
@@ -82,10 +107,25 @@ QT_DIR="D:/Qt/6.10.2/msvc2022_64" VS_ROOT="/c/VS2022" bash tools/build.sh
 
 ```
 src/                应用源码（界面 / 实时曲线 / 指标聚合 / 报告生成 / k6 引擎适配）
-tests/corpus/       解析器用的 k6 输出样本（JSON / JSONL）
+tests/              自动化测试（四层：unit / architecture / ui / integration）
+docs/               实测证据与陷阱速查 + 原始证据（截图、日志、探针输出）
 examples/           示例 k6 压测脚本
 tools/build.sh      命令行构建脚本
+tools/probes/       一次性验证探针（"为什么这么写"的实测工具，不参与构建、不进 CI）
 ```
+
+## 验证
+
+```bash
+bash tools/build.sh test     # 或 ctest --preset default
+```
+
+| 想知道什么 | 看哪里 |
+| --- | --- |
+| 测试怎么分层、新功能该在哪层加测试 | [tests/README.md](tests/README.md) |
+| 某个设计**为什么**是这样（实测数据、踩过的坑） | [docs/02-实测证据与陷阱速查.md](docs/02-实测证据与陷阱速查.md) |
+| 那些结论的原始输出（截图、日志、探针打印） | [docs/evidence/](docs/evidence/) |
+| 探针怎么跑、哪个已被测试取代 | [tools/probes/README.md](tools/probes/README.md) |
 
 ## 当前限制
 

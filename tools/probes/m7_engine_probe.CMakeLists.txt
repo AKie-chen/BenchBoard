@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 3.19)
+project(m7probe LANGUAGES CXX)
+# --- 仓库根目录 ---------------------------------------------------------
+# 默认从本文件位置反推（在 tools/probes/ 就地构建时用）。
+# xxx_run.sh 会把探针源码复制到临时目录再构建，那时由脚本传 -DBENCHBOARD_ROOT= 覆盖。
+if(NOT DEFINED BENCHBOARD_ROOT)
+  get_filename_component(BENCHBOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+endif()
+add_compile_definitions("BENCHBOARD_ROOT=\"${BENCHBOARD_ROOT}\"")
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+if (MSVC)
+  add_compile_options(/utf-8 /W4)
+endif()
+
+# ★ 只要 Core —— 本探针验的就是"引擎层不认识界面"，自己也不该拉 Widgets 进来
+find_package(Qt6 REQUIRED COMPONENTS Core)
+
+set(USER_SRC "${BENCHBOARD_ROOT}/src")
+
+# ★ 链接【真实的】引擎实现：探针断言的就是 K6Engine 本身
+add_executable(m7probe main.cpp
+  ${USER_SRC}/K6Engine.cpp  ${USER_SRC}/K6Engine.h
+  ${USER_SRC}/LoadEngine.h
+  ${USER_SRC}/types.h)
+
+target_include_directories(m7probe PRIVATE ${USER_SRC})
+target_link_libraries(m7probe PRIVATE Qt6::Core)

@@ -1,0 +1,116 @@
+已备份 summary.json（4175 字节, md5 ae10e8deb208）
+已备份 reports/*.md : benchboard-20260926-164724.md benchboard-20260926-165058.md benchboard-20260926-172253.md benchboard-20260926-172312.md 
+=== configure ===
+configure exit=0
+=== build ===
+build exit=0
+Binary file build.log matches
+
+
+========== Part A：safeFileName 契约 ==========
+  [PASS] A1 有效时间戳 → benchboard-20260921-152400.md 实际 = benchboard-20260921-152400.md
+  [PASS] A2 文件名不含路径分隔符 / ..（免疫路径穿越） benchboard-20260921-152400.md
+  [PASS] A3 ★ 无效时间戳必须有安全兜底名（不得产出 benchboard-.md） 实际 = "benchboard-unknow.md"
+
+========== Part B：buildMarkdown 内容契约 ==========
+  [PASS] B1 vus 与 duration 各自独立成行（不得粘连） vus 行 = "5"
+  [PASS] B2 数值统一 2 位小数（不出现 3 位以上小数） OK
+  [PASS] B3 checks 写进报告（名字 + passes + fails 至少有一处） checks.size()=1，报告中找得到该 check 名
+  [PASS] B4 缺失耗时（0）写 "—" 而不是 "0"        最小耗时 = "—"
+  [PASS] B5 配置段含 targetUrl / vus / duration / k6 版本 
+
+========== Part C：writeMarkdown 落盘 ==========
+  [PASS] C1 返回非空路径、且文件真的存在        返回 = "E:/BenchBoard/.workbuddy/tmp/m6probe/out/benchboard-20260921-152400.md"  err = ""
+  [PASS] C1b 返回路径风格统一（不含反斜杠）    返回 = "E:/BenchBoard/.workbuddy/tmp/m6probe/out/benchboard-20260921-152400.md"
+  [PASS] C2 成功时 errorOut 保持为空                   err = ""
+  [PASS] C3 落盘为 UTF-8 无 BOM                           前三字节 = 23 20 42
+  [PASS] C4a ★ 落盘换行是 \n（契约）—— 不得被 QIODevice::Text 转成 CRLF \r 出现 0 次；文件 31769 B vs 预期 31769 B
+  [PASS] C4b 大内容（>16KB）无截断                    归一化后 31769 B  预期 31769 B
+  [PASS] C5 ★ 目录建不出来时必须让调用方察觉（返回空串） 返回 = ""  err = "无法创建目录: E:/BenchBoard/.workbuddy/tmp/m6probe/blocker.txt"
+  [PASS] C5b 失败时 errorOut 有内容                     err = "无法创建目录: E:/BenchBoard/.workbuddy/tmp/m6probe/blocker.txt"
+
+========== Part D：MainWindow 端到端（导出按钮） ==========
+        (基线：TestRunResult{} 默认 config.vus = 10, duration = "30s")
+QFontDatabase: Cannot find font directory E:/Qt/6.10.2/msvc2022_64/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+  [PASS] D0 找到「导出报告」按钮，且初始为 disabled enabled=0
+  [PASS] D1a 三个输入控件都找到了                   QLineEdit=2  QSpinBox=1  QComboBox=1
+  [PASS] D1b onStartClicked 可被驱动                      
+  [PASS] D1c ★ URL 空值早退，引擎【未被启动】（探针零副作用自证） QProcess::state = 0
+  [PASS] D2 装入语料样本作为 summary.json             
+        (invokeMethod onEngineFinished 返回 true)
+  [PASS] D3 onExportClicked 可被驱动（在元对象里） 
+        本次被写入的产物：E:/BenchBoard/reports/benchboard-20260926-225013.md
+  [PASS] D4 ★ 导出的文件名含 14 位时间戳（证明 startedAt 真的接上了） 实际文件名 = "benchboard-20260926-225013.md"
+  [PASS] D5 ★ 报告「vus」== 本次输入 7（默认值是 10 → 不可伪造） 报告 vus = "7"   本次输入 = 7
+  [PASS] D6 ★ 报告「duration」== 本次选中 60s（默认值是 30s → 不可伪造） 报告 duration = "60s"   本次选中 = "60s"
+  [PASS] D7 ★ 报告「脚本路径 / k6 路径 / 输出目录」非空（无默认值可骗） 脚本 = "E:/BenchBoard/examples/script_demo.js"  k6 = "C:/Program Files/k6/k6.exe"  输出目录 = "E:/BenchBoard/reports"
+  [PASS] D8 ★ 报告「开始时间」非空                开始时间 = "2026-09-26 22:50:13"
+  [PASS] D9 ★ 报告「目标 URL」行存在且值为空（本次输入就是空 → 必须跟着变） 该行存在 = 是   值 = ""
+  [PASS] D10 报告「总请求数」== 语料的 4375（数据来自真实解析链路） 总请求数 = "4375"
+  [PASS] D11 ★ 三源对账：报告 == 汇总表格 == summary.json（4375） 报告 = "4375"  表格 = "4375"  summary.json = 4375
+        --- 导出报告前 22 行（原样 dump）---
+        | # BenchBoard 压测报告
+        | 
+        | ## 压测配置
+        | 
+        | - 目标 URL: 
+        | - 脚本路径: E:/BenchBoard/examples/script_demo.js
+        | - vus: 7
+        | - duration: 60s
+        | - k6 路径: C:/Program Files/k6/k6.exe
+        | - k6 版本: 
+        | - 输出目录: E:/BenchBoard/reports
+        | 
+        | ## 压测结果
+        | 
+        | - 开始时间: 2026-09-26 22:50:13
+        | - 总请求数: 4375
+        | - 平均 RPS: 874.77
+        | - 最小耗时: 1.04 ms
+        | - 平均耗时: 3.09 ms
+        | - 中位数耗时: 3.07 ms
+        | - 最大耗时: 10.26 ms
+        | - 90% 耗时: 3.74 ms
+
+========== Part E：中途强杀导出（陈旧 summary.json 陷阱） ==========
+        (invokeMethod onEngineFinished 返回 true)
+  [PASS] E1 强杀后导出仍可驱动                       
+  [PASS] E2 ★ 中途强杀也能导出（卡片验收条款 3） benchboard-20260926-225013.md
+  [PASS] E3 ★ 强杀后报告「总请求数」≠ 4375（不得沿用陈旧 summary.json） 报告总请求数 = "0"（挂着的那份语料是 4375）
+  [PASS] E4 ★ 强杀后「平均耗时」写 "—" 而不是 "0.00 ms"（陷阱 4） 平均耗时 = "—"
+  [PASS] E5 ★ 强杀后「95% 耗时」写 "—"            95%% 耗时 = "—"
+  [PASS] E6 强杀后「错误率」不是 nan / inf（除零守卫） 错误率 = "—"
+  [PASS] E7 ★ 强杀后表格与报告同源（唯一取值入口） 表格 = "0"   报告 = "0"
+        --- 强杀后的报告前 22 行（原样 dump）---
+        | # BenchBoard 压测报告
+        | 
+        | ## 压测配置
+        | 
+        | - 目标 URL: 
+        | - 脚本路径: E:/BenchBoard/examples/script_demo.js
+        | - vus: 7
+        | - duration: 60s
+        | - k6 路径: C:/Program Files/k6/k6.exe
+        | - k6 版本: 
+        | - 输出目录: E:/BenchBoard/reports
+        | 
+        | ## 压测结果
+        | 
+        | - 开始时间: 2026-09-26 22:50:13
+        | - 总请求数: 0
+        | - 平均 RPS: 0.00
+        | - 最小耗时: —
+        | - 平均耗时: —
+        | - 中位数耗时: —
+        | - 最大耗时: —
+        | - 90% 耗时: —
+
+==================== 汇总 ====================
+PASS = 37   FAIL = 0
+RESULT=ALL_PASS
+QThreadStorage: entry 0 destroyed before end of thread 0x22a0d92a390
+probe exit=0
+已还原 reports/（summary.json + 4 个 .md）

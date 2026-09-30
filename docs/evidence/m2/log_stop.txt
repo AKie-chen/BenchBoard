@@ -1,0 +1,25 @@
+按钮通了
+引擎已启动：
+{"type":"Metric","data":{"name":"http_reqs","type":"counter","contains":"default","thresholds":[],"submetrics":null},"metric":"http_reqs"}
+{"metric":"http_reqs","type":"Point","data":{"time":"2026-09-22T15:10:46.8847643+08:00","value":1,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_duration","type":"trend","contains":"time","thresholds":["p(95)<500"],"submetrics":[{"name":"http_req_duration{expected_response:true}","suffix":"expected_response:true","tags":{"expected_response":"true"}}]},"metric":"http_req_duration"}
+{"metric":"http_req_duration","type":"Point","data":{"time":"2026-09-22T15:10:46.8847643+08:00","value":4.6141,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_blocked","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_blocked"}
+{"metric":"http_req_blocked","type":"Point","data":{"time":"2026-09-22T15:10:46.8847643+08:00","value":2.1116,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_connecting","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_connecting"}
+{"metric":"http_req_connecting","type":"Point","data":{"time":"2026-09-22T15:10:46.8847643+08:00","value":2.1116,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:8899/","proto":"HTTP/1.0","scenario":"default","status":"200","url":"http://127.0.0.1:8899/"}}}
+{"type":"Metric","data":{"name":"http_req_tls_handshaking","type":"trend","contains":"time","thresholds":[],"submetrics":null},"metric":"http_req_tls_handshaking"}
+{"
+已接收 5013 行 / 1.1 MB
+已接收 10024 行 / 2.3 MB
+已接收 15030 行 / 3.4 MB
+已接收 20041 行 / 4.6 MB
+已接收 25046 行 / 5.7 MB
+已接收 30054 行 / 6.9 MB
+已接收 35065 行 / 8.0 MB
+已接收 40076 行 / 9.2 MB
+已接收 45086 行 / 10.3 MB
+引擎已结束：
+已接收 48828 行 / 11.2 MB
+结果保存在 E:/BenchBoard/reports
+引擎被强制结束。
