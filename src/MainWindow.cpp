@@ -132,7 +132,6 @@ void MainWindow::buildUi()
     // 摆在日志区【之上】，两者各占一半。
     //
     //   ★ 拉伸因子给 1、日志区也是 1 → 窗口拉高时两块各分一半。
-    //     （M1 时日志区是唯一的 1，所以它独占了全部额外高度；现在它有个伴了。）
     //   ★ 顺序：这两行必须写在日志区的 addWidget 【之前】，
     //     否则图表会跑到日志区下面去 —— 布局是按 addWidget 的调用顺序排的。
     m_chartView = new RealtimeChartView(central);
@@ -163,7 +162,7 @@ void MainWindow::buildUi()
 
     statusBar()->showMessage(QStringLiteral("就绪"));
     // 状态栏右侧用 addPermanentWidget 放引擎状态；
-    // 左侧留给 showMessage —— M3 起那里显示实时数字（见 onUiTick）。
+    // 左侧留给 showMessage —— 那里显示实时数字（见 onUiTick）。
     statusBar()->addPermanentWidget(m_statusLabel = new QLabel(QStringLiteral("引擎：未启动"), this));
 
     // 左侧停靠窗口：暂时注释掉，等有真正的内容（脚本列表）时再启用。
@@ -187,7 +186,7 @@ void MainWindow::connectSignals()
 
     // 注意 QTimer 的对象是 m_uiTimer。
     // 位置同样必须在 m_uiTimer 创建之后 —— 否则 connect 拿到 nullptr 只打印一行
-    // 警告就静默跳过，状态栏永远不动（和 M2 那个 m_engine 的坑一模一样）。
+    // 警告就静默跳过，状态栏永远不动（和构造函数里 m_orchestrator 那条是同一个坑）。
     connect(m_uiTimer, &QTimer::timeout, this, &MainWindow::onUiTick);
 }
 
@@ -381,19 +380,16 @@ void MainWindow::onUiTick()
 }
 
 // ============================================================================
-// 自测与验证
+// 怎么验证
 //
-// 【M3 回归】数据管道随时可以单独验证（不用起界面）：
-//   bash tools/probes/corpus_replay_probe_run.sh
-//   期望：lines=2000  metricDecls=14  points=1986  requests=142  parseErrors=0
-//   两种喂法（整块 / 每 7 字节）结果必须完全一致。
+// 【自动化】分层约束与界面接线（不用起界面、不用 k6）：
+//   ctest --test-dir out/build -R "tst_layering|tst_orchestrator"
 //
-// 【M3 回归】界面联动：
+// 【端到端】要真跑 k6 的界面联动：
 //   bash tools/probes/m3_e2e_probe_run.sh normal   # 自然跑完
 //   bash tools/probes/m3_e2e_probe_run.sh stop     # 第 4 秒点停止
-//   验收过的数字：normal 请求 1483 == summary.json http_reqs.count 1483。
 //
-// 【M7 分层验收】界面里搜不到进程代码：
-//   把 src/MainWindow.h / src/MainWindow.cpp 里的 #include <QProcess> 删掉，
-//   能编译通过 = 界面真的不再依赖进程。
+// 分层的判据不是 grep（注释里出现 QProcess 也会被数进去），
+// 而是"删掉 #include <QProcess> 后仍能编译" ——
+// 这一条由 tests/architecture/tst_layering.cpp 自动守着。
 // 

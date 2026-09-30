@@ -11,7 +11,7 @@
 // 需要本机真的装了 k6 的两条（detectK6Path / isAvailable）在没装时 QSKIP，
 // 不算失败 —— 它们验的是"环境里有没有 k6"，不是产品逻辑。
 //
-// 来源：tools/probes/m7_engine_probe.cpp 的 Part A + Part B（M7 验收）。
+// 来源：tools/probes/m7_engine_probe.cpp 的 Part A + Part B。
 // ============================================================================
 
 #include <QtTest>

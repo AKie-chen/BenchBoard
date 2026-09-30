@@ -18,7 +18,7 @@
 // 产物落在 <测试 exe 同级>/reports/（在构建目录里，不进仓库）。
 // initTestCase 记账、cleanupTestCase 复原 —— 只删本次自己创建的东西。
 //
-// 来源：tools/probes/m6_report_probe.cpp 的 Part D/E（M6 验收）。
+// 来源：tools/probes/m6_report_probe.cpp 的 Part D/E。
 // ============================================================================
 
 #include <QtTest>

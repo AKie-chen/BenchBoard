@@ -20,7 +20,7 @@
 //     ③ 解析器必须容忍脏行 —— 尾部 23~30 行人类摘要必然解析失败
 //
 //   ★ 踩过的坑：漏写 `++m_stats.points;` → 请求数照涨、点数恒为 0，且【不报任何错】。
-//     这类"漏一行但不报错"的错误，是靠 A3 断言（结束时点数 > 0）抓出来的；
+//     这类"漏一行但不报错"的错误，是靠一条守恒断言（结束时点数 > 0）抓出来的；
 //     肉眼盯着状态栏只会觉得"数字在跳，应该没问题"。
 // ============================================================================
 
@@ -77,8 +77,8 @@ void MetricsAggregator::feed(const QByteArray &chunk)
         handleLine(row);
     }
 
-    // 边界（M7 会回来看这一条）：如果一整批数据里一个 '\n' 都没有（比如某一行
-    // 特别长），上面会 return，数据全留在 m_pending 里等下一批 —— 这是对的，
+    // 边界：如果一整批数据里一个 '\n' 都没有（比如某一行特别长），
+    // 上面会 return，数据全留在 m_pending 里等下一批 —— 这是对的，
     // 但也意味着 m_pending 理论上能无限长。
 }
 
@@ -106,7 +106,7 @@ void MetricsAggregator::handleLine(const QByteArray &line)
     const QString type = obj.value(QStringLiteral("type")).toString();
     if ( type == QStringLiteral("Metric")) { ++m_stats.metricDecls; return; }
     if ( type != QStringLiteral("Point"))  { return; }
-    ++m_stats.points;   // ★ 漏了这一行 → 请求数照涨、点数恒为 0（M3 验收 A3 就是这么 FAIL 的）
+    ++m_stats.points;   // ★ 漏了这一行 → 请求数照涨、点数恒为 0，且【不报任何错】
 
     // 为什么要专门数 metricDecls：声明行数 == 出现的指标个数（去重后相等，可自校验）。
     //   · 语料 2,000 行 → 14 个声明
@@ -175,16 +175,15 @@ WindowSample MetricsAggregator::takeWindow()
     m_lastWindowElapsedMs = m_stats.elapsedMs;
     m_lastWindowFailedCount = m_stats.failedCount;
 
-    // ★ M5：算完就清 —— avg / p95 是【本窗口】的统计，不是全程累计。
+    // ★ 算完就清 —— avg / p95 是【本窗口】的统计，不是全程累计。
     //   不清的话曲线会越跑越平（累积平均），数字看着正常，语义已经错了。
     m_durationsMs.clear();
     //   ★ ① 别忘了 reset() 里那几行清零 —— "新增了状态，就回来 reset 里清它"
-    //     （这条规则已经在 M4 漏水位、M5 加水位两次踩过）。
+    //     （这条规则在本项目里已经踩过两次）。
     //     漏了不会报错，只会在【第二轮】压测发作，是最难查的那类 bug。
     //
-    //   ★ avgDurationMs / p95DurationMs / errorRate 从 M5 起真正填上了：
-    //     它们要的是"本窗口内的 trend 样本分布"，所以靠 m_durationsMs 攒缓冲、
-    //     算完在上面清空。M4 只画 RPS 时用不上它们。
+    //   ★ avgDurationMs / p95DurationMs / errorRate 要的是"本窗口内的 trend
+    //     样本分布"，所以靠 m_durationsMs 攒缓冲、算完在上面清空。
     //
     //   ★ 为什么时间用 QDateTime 取绝对时间，而不是用 m_clock？
     //     · m_clock 是相对计时器，两次压测之间会 invalidate，不适合当 X 轴基准
@@ -197,7 +196,7 @@ WindowSample MetricsAggregator::takeWindow()
     //     返回一个默认构造的空对象，w 里算好的东西【全部丢掉】。
     //     症状：图表有标题有坐标轴，但【一条线都没有】。因为 rps / epochMs 全是 0，
     //     曲线所有点重合在原点 (0,0)，QLineSeries 只有一个点，画不出线段。
-    //     ★ 这跟 M3 那个"漏写 ++m_stats.points"是同一族：**不报错**。
+    //     ★ 这跟上面那个"漏写 ++m_stats.points"是同一族：**不报错**。
     //       `/W4` 也不报 —— w 被赋值过，C4189（已初始化未引用）不触发。
     //       只能靠 m4_window_probe 的守恒断言（ΣrequestCount == 语料总请求数）抓。
     return w;
@@ -206,11 +205,10 @@ WindowSample MetricsAggregator::takeWindow()
 // ============================================================================
 // 自测方法
 //
-// 【语料回放】不用等界面接好，1 秒内出结果：
-//   bash tools/probes/corpus_replay_probe_run.sh
-//     模式① 整块喂   —— 一次 feed(全部 2000 行)
-//     模式② 每 7 字节喂一次 —— 强迫边界断在行中间，逼出半行残留路径
-//   两者必须结果完全一致，并和期望值对账：
+// 【自动化】语料回放，不用等界面接好，1 秒内出结果：
+//   ctest --test-dir out/build -R tst_metricsaggregator --output-on-failure
+//   判据是【切行粒度不影响结果】：同一份语料按 1/3/7/64/4096 字节切碎喂进去，
+//   结果必须和整块喂逐字段一致，并对账固定期望值：
 //     lines = 2000   metricDecls = 14   points = 1986
 //     requests = 142   failedCount = 0   parseErrors = 0
 //

@@ -11,7 +11,7 @@
 //   C4  内容超过 QTextStream 内部缓冲（16KB）时，file.close() 早于 out 析构会丢尾巴
 //   C5  目录建不出来时，如果照样返回一个路径，调用方无法察觉
 //
-// 来源：tools/probes/m6_report_probe.cpp 的 Part A/B/C（M6 验收）。
+// 来源：tools/probes/m6_report_probe.cpp 的 Part A/B/C。
 // 与探针的差别：全部落在 QTemporaryDir 里，不再借用仓库的 reports/ 目录，
 // 也就不需要"跑完自己删产物"那套记账。
 // ============================================================================

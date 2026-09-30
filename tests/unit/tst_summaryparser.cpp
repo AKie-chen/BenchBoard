@@ -12,7 +12,7 @@
 //   p(99) 缺失时必须"解析成功但该字段保持 0"，由显示层画成 "—"。
 //   把两者混为一谈，就会让整次解析作废。
 //
-// 来源：tools/probes/summary_parser_probe.cpp（M5 验收）。
+// 来源：tools/probes/summary_parser_probe.cpp。
 // ============================================================================
 
 #include <QtTest>

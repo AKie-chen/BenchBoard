@@ -11,8 +11,8 @@
 //     QLineSeries 和它的 points 是【每条线一份】且成对，留在外面 ——
 //     延迟图有 avg + p95【两条】线却只有一个 m_latctx，就是这条判断法的反证。
 //   ★ 颜色属于 series，归 series 的创建方（setColor 紧跟在 new QLineSeries 之后）。
-//     早期终态里 makeChart 收过一个 lineColor 参数 —— 那是粒度混淆的残留，
-//     已删除：它想给"每条线一份"的东西上色，却挂在"每张图一份"的工厂函数上。
+//     反例：给 makeChart 加一个 lineColor 参数 —— 那是粒度混淆，
+//     它想给"每条线一份"的东西上色，却挂在"每张图一份"的工厂函数上。
 //
 // ★★ Qt Charts 新手最容易栽的三处（前两处是环境，第三处是性能）★★
 //
@@ -26,7 +26,7 @@
 //   ③ 更新曲线【不要】clear() + 逐点 append()：
 //      那样每来一个点触发一次重绘。正确做法是维护一个定长 QVector<QPointF>，
 //      用 QLineSeries::replace() 一次性替换整条曲线，一秒只重绘一次。
-//      （这和 M2/M3 的「回调频率 ≠ 显示频率」是同一条纪律换了战场）
+//      （这和「回调频率 ≠ 显示频率」是同一条纪律换了战场）
 //
 // ★★ 第四个坑更致命：所有权 ★★
 //   QChartView 内部是个 QGraphicsScene，它会 addItem(chart) 接管 chart；

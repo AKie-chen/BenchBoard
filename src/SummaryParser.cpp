@@ -124,6 +124,6 @@ bool SummaryParser::takeDouble(const QJsonObject& metric, const char* key, doubl
 bool SummaryParser::takeP99(const QJsonObject& metric, double* out)
 {
     // 单独留一个函数，是为了让"p(99) 可能不存在"这件事在调用处看得见：
-    // 它只在传了 --summary-trend-stats 时才产出（本 app 自 M2 起一直传着）。
+    // 它只在传了 --summary-trend-stats 时才产出（本 app 一直传着）。
     return takeDouble(metric, "p(99)", out);
 }

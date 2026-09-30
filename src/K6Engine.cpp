@@ -37,8 +37,8 @@ K6Engine::K6Engine(QObject *parent)
 K6Engine::~K6Engine()
 {
     // 压测中关窗口（异常路径 5）：先把子进程收掉。
-    // ★ 实测踩过：孤儿 k6 会在父进程退出【之后】继续跑，还能覆盖 reports/ 里的文件
-    //   （M6 探针事故）。所以这里不能省。
+    // ★ 实测踩过：孤儿 k6 会在父进程退出【之后】继续跑，还能覆盖 reports/ 里的文件。
+    //   所以这里不能省。
     if (m_process.state() != QProcess::NotRunning) {
         m_process.kill();
         m_process.waitForFinished(2000);
@@ -164,7 +164,7 @@ void K6Engine::onProcessFinished(int exitCode, QProcess::ExitStatus status)
     m_stopTimer.stop();
     m_stopping = false;
 
-    // ★ cleanExit 的唯一来源就是这里 —— 别让它烂在实现类里（契约修正 ②）。
+    // ★ cleanExit 的唯一来源就是这里 —— 别让它烂在实现类里。
     //   status == NormalExit  → 进程自己退出的：exitCode 有语义、summary 可信
     //   status == CrashExit   → 被 kill() / 崩掉的：exitCode 无意义（实测 62097）
     emit finished(exitCode, status == QProcess::NormalExit, m_summaryPath);

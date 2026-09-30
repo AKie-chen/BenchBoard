@@ -10,7 +10,7 @@
 #include <QFileInfo>
 
 // ============================================================================
-// 编排层实现（M7-4）
+// 编排层实现
 //
 // ★ 本文件里【没有】QProcess，也不该有。验收判据别写成 `grep -c QProcess == 0`——
 //   注释里提到 `QProcess::` 也会被数进去。正解是「删掉 #include <QProcess> 后仍能编译」。
@@ -95,7 +95,7 @@ void TestOrchestrator::startTest(const TestConfig &config)
     // ★ 先记 config + 复位本轮标志，再做自检。
     //   这样即使自检没过，用户点「导出报告」也能拿到"这一次的输入"。
     //   ★ 三态标志必须在这里重置 —— 否则上一轮的值会残留成这一轮的结果
-    //     （同族：M5 那笔"陈旧 summary"的账）。
+    //     （同族：那张"陈旧的 summary.json"的账）。
     m_config           = config;
     m_startedAt        = QDateTime::currentDateTime();
     m_lastResult       = TestRunResult();
@@ -145,8 +145,8 @@ bool TestOrchestrator::isRunning() const
 
 const TestRunResult &TestOrchestrator::lastResult() const
 {
-    // ★ m_lastResult 是【值成员】不是指针 —— 它是 M6「唯一取值入口」
-    //   （buildRunResult）的终点形态。
+    // ★ m_lastResult 是【值成员】不是指针 —— 它是「唯一取值入口」：
+    //   汇总表格和导出的报告读的是同一个它，不会出现"表里一个数、报告里另一个数"。
     return m_lastResult;
 }
 

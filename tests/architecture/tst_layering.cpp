@@ -18,7 +18,7 @@
 //        文字（"正解是删掉 #include <QProcess> 后仍能编译"）同样被数进去 → 又失败。
 //   → 结论：任何"读源码文本"的判据都会被注释污染，除非先把注释剥掉。
 //
-// 来源：tools/probes/m7_engine_probe.cpp 的 Part C（M7 分层验收）。
+// 来源：tools/probes/m7_engine_probe.cpp 的 Part C。
 // ============================================================================
 
 #include <QtTest>

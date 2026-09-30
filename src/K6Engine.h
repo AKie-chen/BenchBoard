@@ -21,13 +21,14 @@
 //   - GET /v1/status 返回 502，不要拿它做存活探测。
 //   - QProcess::terminate() 对 k6 无效（无窗口的控制台程序），只能 kill()。
 //
-// ★ 契约修正（2026-09-27）：终态头文件里原本还有一个
-//     void scanLine(const char *begin, int len);   // 快速解析一行 → 发 rawSample
-//   连同 m_pending / m_parsedLines / m_badLines。那是 M1 的设计（解析住在引擎里）。
-//   M3 把「拆行 + 半行残留 + JSON 解析」整体挪进了 MetricsAggregator，这一簇当场
-//   失去全部消费者 —— 实测它被搬进 src/ 后只是个空实现，被调用却什么都不做。
-//   所以删掉：本类现在只负责「把 stdout 字节原样发出去」（outputChunk），
-//   解析（含那个 3.63x 的 4/14 前缀预筛）住在聚合器。
+// ★ 分层：本类只负责「把 stdout 字节原样发出去」（outputChunk）。
+//   拆行 / 半行残留 / JSON 解析全部住在 MetricsAggregator。
+//
+//   为什么不在引擎里顺手解析：那样"引擎"与"解析"会纠缠在一起 ——
+//   换引擎就得重写解析，改解析就得动引擎。曾经有一版设计把
+//   scanLine() / m_pending / m_parsedLines 放在这里，结果三个成员全部失去消费者，
+//   只剩一个被调用却什么都不做的空实现，最后整体删掉。
+//
 //   "把解析上移回引擎" 记为【已知遗留】—— 见 LoadEngine.h 里那笔同源的债。
 // ============================================================================
 
@@ -71,7 +72,7 @@ public:
 private slots:
     void onReadyReadStdout();
     void onReadyReadStderr();
-    // ★ 契约修正 ② 的落点就在这里：cleanExit 的唯一来源是 status == QProcess::NormalExit。
+    // ★ cleanExit 的唯一来源是 status == QProcess::NormalExit。
     //   emit finished(exitCode, /*cleanExit=*/ status == QProcess::NormalExit, m_summaryPath);
     //   —— 这条判据【必须在走到上层之前就带上】，否则上层只能拿 exitCode 去猜（猜不出来）。
     void onProcessFinished(int exitCode, QProcess::ExitStatus status);

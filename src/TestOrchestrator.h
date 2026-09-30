@@ -18,13 +18,10 @@
 //    exportReport()
 //      → ReportWriter 落盘 → 返回路径
 //
-// ★ 契约修正记录（两条，2026-09-27）：
-//   ① 原文写的是「引擎逐条 rawSample → 聚合器每秒发 windowCompleted → UI 画点」。
-//      那两个东西【都不存在】：`rawSample` 在 M7 已删、`windowCompleted` M3 起就没有。
-//      现在的真相是【拉取】不是【推送】—— 自述见 `MetricsAggregator.h:9-15`。
-//   ② `windowReady` 信号**已删**：与①同因（M3 定的就是拉取，`metrics()` 这个 getter
-//      才是活的）。留一个没人接的"另一条路"，下一个人会以为它通 —— 这就是 `scanLine`
-//      那一簇的教训。
+// ★ 取数是【拉取】不是【推送】：UI 自己每秒一拍，向 metrics() 取 takeWindow()。
+//   没有 windowCompleted / windowReady 这类"每秒广播一个窗口"的信号 ——
+//   留一个没人接的"另一条路"，下一个人会以为它通。
+//   （为什么不给聚合器加信号，见 MetricsAggregator.h 开头那段。）
 // ============================================================================
 
 #include "types.h"
@@ -79,13 +76,10 @@ signals:
 
 private slots:
     // 引擎的原始字节 → 聚合器。顺带做两处节流日志（首包 / 每 10000 行一行进度）。
-    // （原在 `MainWindow::onEngineStdout`，M7 随数据通路一起下沉。）
+    // （这件事属于编排层：产生日志的地方就在这里。）
     void onEngineOutput(const QByteArray &chunk);
 
-    // ★ 契约修正（2026-09-27）：这里原本只有 (exitCode, summaryJsonPath) ——
-    //   退出判据在 `emit` 的那一刻就被截断了，编排层拿不到（详见 README 契约修正记录）。
-    //
-    //   分工（★ 谁都不该去猜对方的活）：
+    // ★ 分工（★ 谁都不该去猜对方的活）：
     //     cleanExit     由【引擎】给 —— 引擎只知道"进程是怎么结束的"
     //     m_userStopped 由【本类】给 —— "是不是用户让我停的" 是编排层的知识，
     //                   引擎不可能知道
@@ -105,18 +99,16 @@ private:
     qint64             m_wallMs  = 0;
     bool               m_running = false;
 
-    // ★ 三态判定用（契约修正 2026-09-27 新增）
+    // ★ 三态判定用
     //   startTest() 里【必须重置这三个】—— 否则上一轮的值会残留成这一轮的结果
-    //   （同族：M5 那笔"陈旧 summary"的账）。
+    //   （同族：那张"陈旧的 summary.json"的账）。
     bool               m_userStopped   = false;   // stopTest() 置 true
                                                   // ★ 已读：决定日志说"用户停止"还是"异常退出"
     bool               m_lastCleanExit = false;   // onEngineFinished 存 cleanExit
     QString            m_lastSummaryPath;         // 同上：路径只能从 finished() 的第三参存下来
                                                   // （LoadEngine 抽象接口上【没有】summary 路径）
-    // ⚠️ 上面两个成员目前【只写不读】。契约原意是"导出报告时读"（让报告能标注
-    //    "本次数据来自实时统计，不是 k6 汇总"），但 M7 收尾时 exportReport() 还没用上
-    //    它们 —— 接线 = 改 M6 报告的输出内容，会破坏 M7 自己的验收前提
-    //    「重构不改变行为（m6_report_probe 37/37 一行不变）」。
+    // ⚠️ 上面两个成员目前【只写不读】。设计意图是"导出报告时读"，让报告能标注
+    //    "本次数据来自实时统计，不是 k6 汇总" —— 但至今没有接上。
     //    → 记为【已知遗留】，留给后续独立小补丁。
     //    ⚠️ 别照着旧注释推测"已经有地方在读它"—— 实测全仓零读取点。
 
